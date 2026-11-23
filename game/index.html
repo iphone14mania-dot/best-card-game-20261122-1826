@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ember Duel</title>
+<link rel="icon" href="data:,">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #171019; }
+  body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; color: #f5efe6; }
+  #app { height: 100%; }
+  .screen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; }
+  button { font-family: inherit; cursor: pointer; }
+  .bigbtn {
+    background: linear-gradient(180deg, #f2622e, #c93a12); color: #fff; border: 2px solid #ffb199;
+    border-radius: 12px; padding: 14px 44px; font-size: 22px; font-weight: 800; letter-spacing: 1px;
+    box-shadow: 0 6px 0 #7c2308, 0 10px 24px rgba(0,0,0,.5); transition: transform .08s, box-shadow .08s;
+  }
+  .bigbtn:hover { transform: translateY(-2px); }
+  .bigbtn:active { transform: translateY(3px); box-shadow: 0 2px 0 #7c2308; }
+  .bigbtn:disabled { opacity: .45; cursor: default; transform: none; }
+  .smallbtn { background: #2c2233; color: #f5efe6; border: 1px solid #6b5a7a; border-radius: 8px; padding: 6px 12px; font-size: 14px; }
+  .smallbtn:hover { background: #3d2f47; }
+
+  /* ---- title screen ---- */
+  .title-screen { background: radial-gradient(ellipse at 50% 30%, #4a1f16 0%, #241226 55%, #171019 100%); text-align: center; }
+  .title-embers { font-size: 40px; letter-spacing: 12px; }
+  .title { font-size: 76px; margin: 8px 0 0; letter-spacing: 6px; color: #ffb199;
+    text-shadow: 0 0 24px rgba(242,98,46,.8), 0 4px 0 #7c2308; }
+  .tagline { font-size: 18px; color: #d9c9e8; margin: 6px 0 22px; }
+  .howto { max-width: 640px; background: rgba(0,0,0,.35); border: 1px solid #6b5a7a; border-radius: 14px;
+    padding: 12px 22px; margin-top: 24px; text-align: left; font-size: 15px; line-height: 1.45; }
+  .howto h2 { margin: 4px 0 8px; font-size: 18px; color: #ffd9a0; }
+  .howto p { margin: 6px 0; }
+  .keys { color: #b9a8c9; font-size: 13px; }
+
+  /* ---- table ---- */
+  .table-screen { justify-content: space-between; background: radial-gradient(ellipse at 50% 50%, #2e1a2e 0%, #171019 75%); }
+  .topbar { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 8px; }
+  .brand { font-size: 22px; font-weight: 800; letter-spacing: 2px; color: #ffb199; }
+  .turninfo { font-size: 16px; color: #d9c9e8; }
+  .opp-area, .player-area { width: 100%; display: flex; align-items: center; gap: 16px; }
+  .fighter { width: 210px; flex-shrink: 0; }
+  .fname { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .hpbar { position: relative; height: 26px; background: #3a2b3d; border: 2px solid #6b5a7a; border-radius: 13px; overflow: hidden; }
+  .hpfill { height: 100%; transition: width .45s ease; }
+  .hp-high .hpfill { background: linear-gradient(90deg, #37b24d, #69db7c); }
+  .hp-mid .hpfill { background: linear-gradient(90deg, #e8590c, #ffa94d); }
+  .hp-low .hpfill { background: linear-gradient(90deg, #c92a2a, #ff6b6b); }
+  .hptext { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; text-shadow: 0 1px 2px #000; }
+  .block { margin-top: 4px; font-size: 15px; font-weight: 700; color: #9ec5fe; }
+  .mana { margin-top: 5px; font-size: 15px; letter-spacing: 1px; }
+  .gem { color: #4dabf7; text-shadow: 0 0 6px #4dabf7; }
+  .gem-empty { color: #4a3d55; text-shadow: none; }
+  .manatext { margin-left: 6px; color: #d9c9e8; font-weight: 700; }
+  .hand { flex: 1; display: flex; justify-content: center; gap: 8px; min-height: 148px; align-items: center; }
+  .piles { width: 92px; flex-shrink: 0; font-size: 14px; color: #b9a8c9; line-height: 1.7; text-align: right; }
+  .mid-area { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 150px; }
+  .played-wrap { width: 220px; text-align: center; }
+  .played-label { font-size: 13px; color: #b9a8c9; margin-bottom: 6px; }
+  .played-empty { font-size: 30px; color: #4a3d55; }
+  .mid-center { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .vs { font-size: 34px; }
+  .endbtn { padding: 10px 30px; font-size: 18px; }
+  .combo-banner { min-height: 28px; font-size: 19px; font-weight: 800; color: #ffd43b;
+    text-shadow: 0 0 12px rgba(255,212,59,.7); opacity: 0; transition: opacity .2s; }
+  .combo-banner.show { opacity: 1; animation: pop .35s ease; }
+  @keyframes pop { 0% { transform: scale(.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+  .log { width: 300px; height: 132px; overflow: hidden; background: rgba(0,0,0,.35); border: 1px solid #4a3d55;
+    border-radius: 10px; padding: 8px 10px; font-size: 13px; line-height: 1.5; color: #e6dcf0; }
+  .logline { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .logline:first-child { color: #ffd43b; }
+  .hint { font-size: 13px; color: #8a7a99; }
+  .empty-hand { color: #8a7a99; font-size: 15px; }
+
+  /* ---- cards ---- */
+  .card {
+    width: 104px; height: 148px; border-radius: 12px; position: relative; flex-shrink: 0;
+    background: linear-gradient(180deg, var(--ellight), #fff 55%, #f3ede4);
+    border: 3px solid var(--el); color: #221a24; text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,.55); transition: transform .15s ease, box-shadow .15s ease;
+    user-select: none;
+  }
+  .card.playable { cursor: pointer; }
+  .card.playable:hover { transform: translateY(-14px) scale(1.06); box-shadow: 0 14px 22px rgba(0,0,0,.65), 0 0 0 3px #ffd43b; }
+  .card.dimmed { opacity: .62; }
+  .card .cost {
+    position: absolute; top: -8px; left: -8px; width: 30px; height: 30px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #7cc4ff, #1971c2 70%); color: #fff; font-weight: 800;
+    font-size: 17px; display: flex; align-items: center; justify-content: center;
+    border: 2px solid #d4e8ff; box-shadow: 0 2px 6px rgba(0,0,0,.5);
+  }
+  .card .glyph { font-size: 30px; margin-top: 14px; line-height: 1; }
+  .card .cname { font-size: 13px; font-weight: 800; line-height: 1.15; margin-top: 5px; color: var(--eldark); }
+  .card .cvalue { font-size: 38px; font-weight: 900; line-height: 1; color: var(--eldark); margin-top: 3px; }
+  .card .cverb { font-size: 12px; font-weight: 700; color: #5a4a63; margin-top: 3px; }
+  .card.facedown {
+    width: 72px; height: 104px; background: linear-gradient(160deg, #5b2333, #2c1420);
+    border: 3px solid #8a4a5a; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .card.facedown .back-glyph { font-size: 26px; }
+  .card.facedown .back-text { font-size: 10px; font-weight: 800; letter-spacing: 1px; color: #ffb199; margin-top: 6px; }
+  .opp-hand .card.facedown { transform: rotate(calc((var(--i) - 2) * 2deg)); }
+  .played-wrap .card { animation: snap .3s ease; margin: 0 auto; }
+  @keyframes snap { 0% { transform: translateY(24px) scale(.85); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  .player-hand .card { animation: deal .3s ease; }
+  @keyframes deal { 0% { transform: translateY(30px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+
+  /* ---- end screens ---- */
+  .over-screen { text-align: center; }
+  .over-screen.win { background: radial-gradient(ellipse at 50% 35%, #5c3a08 0%, #241226 60%, #171019 100%); }
+  .over-screen.loss { background: radial-gradient(ellipse at 50% 35%, #3a0d0d 0%, #241226 60%, #171019 100%); }
+  .over-title { font-size: 72px; margin: 0; letter-spacing: 4px; }
+  .win .over-title { color: #ffd43b; text-shadow: 0 0 30px rgba(255,212,59,.8); animation: pop .5s ease; }
+  .loss .over-title { color: #ff8787; text-shadow: 0 0 30px rgba(255,0,0,.5); }
+  .over-sub { font-size: 20px; color: #e6dcf0; }
+  .over-stats { background: rgba(0,0,0,.35); border: 1px solid #6b5a7a; border-radius: 12px; padding: 12px 26px; margin: 10px 0 22px; font-size: 17px; line-height: 1.7; }
+  .confetti { font-size: 34px; letter-spacing: 8px; animation: pop .6s ease; }
+
+  #app.hurt { animation: shake .3s ease; }
+  @keyframes shake { 0%,100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+  #status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<p id="status" role="status" aria-live="polite"></p>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
